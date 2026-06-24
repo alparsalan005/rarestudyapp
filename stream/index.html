@@ -100,7 +100,7 @@ const SUBJECT_NAME = QS.get('subjectName')||'';
 const CHAPTER_NAME = QS.get('chapterName')||'';
 const INIT_SEC     = QS.get('section')    ||'videos';
 
-if(!BATCH_ID||!SUBJECT_ID||!CHAPTER_ID) location.href='https://alparsalan005.github.io/rarestudyapp/batches';
+if(!BATCH_ID||!SUBJECT_ID||!CHAPTER_ID) location.='https://alparsalan005.github.io/rarestudyapp/batches';
 document.getElementById('back-label').textContent = CHAPTER_NAME||'Chapters';
 const SITE_NAME='rarestudy';
 document.title = (CHAPTER_NAME||'Content')+' — '+SITE_NAME;
@@ -158,10 +158,10 @@ function buildVideoItem(item){
     const id_=item._id||'';
     const name=item.topic||vd.name||'';
     const done=getC()[id_]?'done':'';
-    const href=`https://alparsalan005.github.io/rarestudyapp/schedule-details?batchId=${ep(BATCH_ID)}&subjectId=${ep(SUBJECT_ID)}&scheduleId=${ep(id_)}&tap=video`;
+    const =`https://alparsalan005.github.io/rarestudyapp/schedule-details?batchId=${ep(BATCH_ID)}&subjectId=${ep(SUBJECT_ID)}&scheduleId=${ep(id_)}&tap=video`;
     const li=document.createElement('li');
     li.className='content-item';
-    li.innerHTML=`<a class="content-link" href="${esc(href)}">
+    li.innerHTML=`<a class="content-link" ="${esc()}">
         <div class="thumb-box"><img data-src="${esc(thumb)||'https://rarestudy.in/static/site_thumbnail.png'}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" alt="" class="lazy-img" onerror="this.src='/static/site_thumbnail.png'"></div>
         <div class="content-details">
             <div class="content-name">${esc(name)}</div>
@@ -181,7 +181,7 @@ function buildNoteItems(item, isDpp){
             let gIdx=0;
             for(let i=0;i<hwIdx;i++) gIdx+=(item.homeworkIds[i].attachmentIds||[]).length;
             gIdx+=attIdx;
-            const href=`https://alparsalan005.github.io/rarestudyapp/schedule-details?batchId=${ep(BATCH_ID)}&subjectId=${ep(SUBJECT_ID)}&scheduleId=${ep(item._id)}&tap=note&noteIndex=${gIdx}&isDpp=${isDpp?'true':'false'}`;
+            const href=`https://alparsalan005.github.io/rarestudyapp/schedule-details/?batchId=${ep(BATCH_ID)}&subjectId=${ep(SUBJECT_ID)}&scheduleId=${ep(item._id)}&tap=note&noteIndex=${gIdx}&isDpp=${isDpp?'true':'false'}`;
             const li=document.createElement('li');
             li.className='content-item';
             li.innerHTML=`<a class="content-link" href="${esc(href)}">
@@ -200,7 +200,7 @@ function buildNoteItems(item, isDpp){
 function buildDppItem(item){
     const test=item.test||{};
     const isFree=item.isFree===true;
-    const href=`https://alparsalan005.github.io/rarestudyapp/get-dpp-quiz?batchId=${ep(BATCH_ID)}&scheduleId=${ep(item.scheduleId||'')}&testId=${ep(test._id||'')}&tag=${ep(item.tag||'Start')}&isFreeTest=${isFree}`;
+    const href=`https://alparsalan005.github.io/rarestudyapp/get-dpp-quiz/?batchId=${ep(BATCH_ID)}&scheduleId=${ep(item.scheduleId||'')}&testId=${ep(test._id||'')}&tag=${ep(item.tag||'Start')}&isFreeTest=${isFree}`;
     const li=document.createElement('li');
     li.className='dpp-item';
     li.innerHTML=`<a class="dpp-link" href="${esc(href)}">
