@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Batches — rarestudy</title>
-    <link rel="icon" type="image/png" href="https://rarestudy.in/static/site_thumbnail.png/static/site_logo.png">
+    <link rel="icon" type="image/png" href="https://rarestudy.in/static/site_logo.png">
     <link rel="manifest" id="manifest-placeholder">
     <meta name="application-name" content="rarestudy">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="rarestudy">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0f172a">
-    <link rel="apple-touch-icon" href="https://rarestudy.in/static/site_thumbnail.png/static/site_logo.png">
+    <link rel="apple-touch-icon" href="https://rarestudy.in/static/site_logo.png">
     <style>
         * {
             margin: 0;
@@ -78,6 +78,26 @@
 
         .site-brand .brand-name {
             color: #f1f5f9;
+        }
+
+        .countdown-timer {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #f87171;
+            white-space: nowrap;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .countdown-timer.show {
+            display: flex;
         }
 
         .search-section {
@@ -860,6 +880,8 @@
             <div class="brand-icon">R</div>
             <div class="brand-name">rarestudy.site</div>
         </div>
+        <div class="countdown-timer" id="countdownTimer">
+            ⏱ <span id="countdownTime">--:--:--</span>
         </div>
     </div>
 
@@ -954,8 +976,18 @@
         </div>
     </div>
 
+    <div id="resetKeyPopup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index:3000;">
+        <div style="background:linear-gradient(135deg,#1e293b,#0f172a); border-radius:20px; padding:35px 28px; max-width:360px; width:90%; position:relative; border:2px solid #ef4444; text-align:center;">
+            <button onclick="document.getElementById('resetKeyPopup').style.display='none'" style="position:absolute; top:12px; right:12px; width:32px; height:32px; background:rgba(51,65,85,0.6); border:none; border-radius:50%; cursor:pointer; font-size:16px; color:#94a3b8;">✕</button>
+            <div style="font-size:40px; margin-bottom:15px;">🔑</div>
+            <div style="font-size:20px; font-weight:800; color:#e2e8f0; margin-bottom:10px;">Reset Session Key</div>
+            <div style="font-size:14px; color:#94a3b8; margin-bottom:25px; line-height:1.5;">Your current session will be deleted and you'll need to generate a new key to continue.</div>
+            <button onclick="resetKey()" style="background:linear-gradient(135deg,#ef4444,#dc2626); border:none; border-radius:12px; padding:13px 35px; font-size:15px; font-weight:700; color:white; cursor:pointer;">🔄 Reset Key</button>
+        </div>
+    </div>
+
     <script>
-        const SITE_THUMBNAIL  = 'https://rarestudy.in/static/site_thumbnail.png/static/site_thumbnail.png';
+        const SITE_THUMBNAIL  = '/static/site_thumbnail.png';
         let ALL_BATCHES       = [];
         let DISPLAYED_BATCHES = [];
         const BATCH_SIZE      = 10;
@@ -997,6 +1029,62 @@
             mahapackTitle:       document.getElementById('mahapackTitle'),
             mahapackGrid:        document.getElementById('mahapackGrid'),
             mahapackSearchInput: document.getElementById('mahapackSearchInput')
+        };
+
+        const cookieManager = {
+            get(name) {
+                const match = document.cookie.match(new RegExp(name + '=([^;]+)'));
+                return match ? JSON.parse(decodeURIComponent(match[1])) : null;
+            },
+            set(name, value) {
+                const date = new Date();
+                date.setTime(date.getTime() + 365 * 24 * 60 * 60 * 1000);
+                document.cookie = `${name}=${encodeURIComponent(JSON.stringify(value))};expires=${date.toUTCString()};path=/`;
+            },
+            getValue(name) {
+                const match = document.cookie.match(new RegExp(name + '=([^;]+)'));
+                return match ? match[1] : null;
+            }
+        };
+
+        const countdownManager = {
+            timer:      null,
+            expiryTime: null,
+
+            init() {
+                const v = cookieManager.getValue('session_expiry');
+                if (!v) return;
+                this.expiryTime = parseInt(v);
+                this.start();
+            },
+
+            formatTime(ms) {
+                if (ms <= 0) return '00:00:00';
+                const h = Math.floor(ms / 3600000);
+                const m = Math.floor((ms % 3600000) / 60000);
+                const s = Math.floor((ms % 60000) / 1000);
+                return [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+            },
+
+            updateDisplay() {
+                const timerEl = document.getElementById('countdownTimer');
+                const timeEl  = document.getElementById('countdownTime');
+                if (!this.expiryTime) { timerEl.classList.remove('show'); return; }
+                const remaining = this.expiryTime - Date.now();
+                if (remaining <= 0) { timeEl.textContent = '00:00:00'; this.stop(); return; }
+                timeEl.textContent = this.formatTime(remaining);
+                timerEl.classList.add('show');
+            },
+
+            start() {
+                if (!this.expiryTime) return;
+                this.updateDisplay();
+                this.timer = setInterval(() => this.updateDisplay(), 1000);
+            },
+
+            stop() {
+                if (this.timer) { clearInterval(this.timer); this.timer = null; }
+            }
         };
 
         const escapeHTML = (t) =>
@@ -1623,8 +1711,20 @@
             document.getElementById('resetKeyPopup').style.display = 'flex';
         };
 
+        function resetKey() {
+            window.location.href = '/reset-key';
+        }
+
+        function initialize() {
+            state.favourites = cookieManager.get('favourite_batches') || [];
+            renderInitialBatches();
+            el.telegramPopup.style.display = 'flex';
+            countdownManager.init();
+        }
+
         document.addEventListener('DOMContentLoaded', initialize);
-       (function () {
+
+        (function () {
             ['contextmenu', 'selectstart', 'dragstart', 'copy'].forEach(evt =>
                 document.addEventListener(evt, e => e.preventDefault())
             );
@@ -1637,5 +1737,7 @@
             });
         })();
     </script>
+
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"a870477babf4472d87cfe5347ff3f376","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
